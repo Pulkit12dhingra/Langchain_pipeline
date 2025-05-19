@@ -1,5 +1,3 @@
-# to run this code use command streamlit run streamlit.py ( file name can be anything) in the terminal
-
 import streamlit as st
 import os
 from langchain.document_loaders import TextLoader
@@ -11,8 +9,31 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_models import ChatOllama
 
-# Title
-st.title("LangChain RAG Chatbot")
+st.set_page_config(page_title="LangChain Chatbot", layout="wide")
+st.markdown("""
+    <style>
+    .message {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        max-width: 80%;
+    }
+    .user {
+        background-color: #DCF8C6;
+        align-self: flex-end;
+    }
+    .bot {
+        background-color: #F1F0F0;
+        align-self: flex-start;
+    }
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("💬 LangChain Chat Interface")
 
 # Initialize session state
 if 'chat_history' not in st.session_state:
@@ -46,18 +67,18 @@ if 'qa_chain' not in st.session_state:
         qa_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
         st.session_state.qa_chain = qa_chain
 
-# Input
-user_input = st.text_input("Ask a question:", key="input")
+# Chat input box
+user_input = st.chat_input("Type your message here...")
 
 # On submit
 if user_input:
-    with st.spinner("Generating answer..."):
+    with st.spinner("Thinking..."):
         response = st.session_state.qa_chain.run(user_input)
         st.session_state.chat_history.append((user_input, response))
 
-# Display chat history
-if st.session_state.chat_history:
-    st.subheader("Chat History")
-    for i, (q, a) in enumerate(reversed(st.session_state.chat_history)):
-        st.markdown(f"**Q{i+1}:** {q}")
-        st.markdown(f"**A{i+1}:** {a}")
+# Display chat history as styled chat bubbles
+st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
+for i, (q, a) in enumerate(st.session_state.chat_history):
+    st.markdown(f"<div class='message user'><strong>You:</strong><br>{q}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='message bot'><strong>Bot:</strong><br>{a}</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
